@@ -1,35 +1,30 @@
 ﻿################################################################################
 ## Quick Time com barra
 ################################################################################
-screen quick_bar():
-    #### Bloquea el avance con click
-    modal True
-    
-    #### Tiempo de espera 
-    default timeout = 5.0
-    
-    
-    #### Posiciones de la barra
-    bar:
-        xalign 0.5
-        ypos 400
-        xsize 740
-        value AnimatedValue(old_value=0.0, value=1.0, range=1.0, delay=timeout)
-    timer timeout action Jump(timeout_label)
+transform alpha_dissolve:
+    alpha 0.0
+    linear 0.5 alpha 1.0
+    on hide:
+        linear 0.5 alpha 0
+    # This is to fade the bar in and out, and is only required once in your script
 
-    # Botão que deve ser apertado e a label que te levará
-    key "f" action(ui.jumps("caverna"))
 
-################################################################################
-## Mage Minigame start here
-################################################################################
+screen countdown:
+    timer 0.01 repeat True action If(time > 0, true=SetVariable('time', time - 0.01), false=[Hide('countdown'), Jump(timer_jump)]) 
+        ### ^this code decreases variable time by 0.01 until time hits 0, at which point, the game jumps to label timer_jump (timer_jump is another variable that will be defined later)
+
+    bar value time range timer_range xalign 0.5 yalign 0.9 xmaximum 300 at alpha_dissolve 
+        # ^This is the timer bar.
 
 label mageStart:
-
+    $ time = 3                                     ### set variable time to 3
+    $ timer_range = 3                              ### set variable timer_range to 3 (this is for purposes of showing a bar)
+    $ timer_jump = 'menu_slow'                    ### set where you want to jump once the timer runs out
+    $point = 0
     Ar shappy "To win the game, you must click on the right options to increase the 'fear level'."
     Ar ssurprise "Watch out for the time limit!"
-    $point = 0
 
+    show screen countdown                          ### call and start the timer
     menu:
         "{font=PARCHM.TTF} {size=+50}Question One\:{/font=PARCHM.TTF} {/size} Who is the author of the book \"Frankenstein\"?"
 
@@ -40,8 +35,9 @@ label mageStart:
             $point += 1
         "Charlotte Bronte":
             jump js_mage02
-
+hide screen countdown
 label mageQ2:
+    show screen countdown                          ### call and start the timer
 
     menu:
         "{font=PARCHM.TTF} {size=+50}Question Two\:{/font=PARCHM.TTF} {/size} What is the name of Victor Frankenstein's creature?"
@@ -53,8 +49,9 @@ label mageQ2:
             $point += 1
         "Thing":
             jump js_mage02
-
+hide screen countdown
 label mageQ3:
+    show screen countdown                          ### call and start the timer
 
     menu:
         "{font=PARCHM.TTF} {size=+50}Last question\:{/font=PARCHM.TTF} {/size} Who is the protagonist of Frankenstein?"
@@ -66,6 +63,7 @@ label mageQ3:
             Ar shappy "I knew it!"
             $point += 1
             jump mageEnd
+hide screen countdown
 label js_mage01:
     Ma "Behold, the dance of shadows, where reality blurs and dreams take flight."
     return
@@ -73,3 +71,6 @@ label js_mage01:
 label js_mage02:
     Ma "Witness as the darkness itself becomes my canvas, painting scenes of wonder and terror for your entertainment."
     return
+label menu_slow:
+    Ma "Hmm too slow, let's try again."
+    jump mageStart
